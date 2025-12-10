@@ -1,0 +1,2175 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Smart Booking Scheduler API - V1",
+        "description": "Complete API documentation for Smart Booking Scheduler. Comprehensive system for managing services, bookings, and scheduling.",
+        "termsOfService": "https://example.com/terms",
+        "contact": {
+            "name": "API Support",
+            "url": "https://example.com/support",
+            "email": "rdhathaliya411@gmail.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000/api/v1",
+            "description": "Local Development Server"
+        },
+        {
+            "url": "https://api.example.com/api/v1",
+            "description": "Production Server"
+        }
+    ],
+    "paths": {
+        "/appointments/book": {
+            "post": {
+                "tags": [
+                    "Appointments"
+                ],
+                "summary": "Book a new appointment",
+                "description": "Public endpoint for clients to book an appointment. No authentication required.",
+                "operationId": "bookAppointment",
+                "requestBody": {
+                    "description": "Appointment booking details",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "service_id",
+                                    "client_name",
+                                    "client_email",
+                                    "booking_date",
+                                    "start_time",
+                                    "end_time"
+                                ],
+                                "properties": {
+                                    "service_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "client_name": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "example": "Reena Hathaliya"
+                                    },
+                                    "client_email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "maxLength": 100,
+                                        "example": "reena@gmail.com"
+                                    },
+                                    "client_phone": {
+                                        "type": "string",
+                                        "maxLength": 20,
+                                        "example": "+1234567890",
+                                        "nullable": true
+                                    },
+                                    "booking_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-12-20"
+                                    },
+                                    "start_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "10:00"
+                                    },
+                                    "end_time": {
+                                        "type": "string",
+                                        "format": "time",
+                                        "example": "11:00"
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "example": "I prefer morning appointments",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Appointment booked successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Appointment booked successfully. Awaiting confirmation."
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Appointment"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "This time slot is already booked"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/appointments": {
+            "get": {
+                "tags": [
+                    "Appointments"
+                ],
+                "summary": "List all appointments",
+                "description": "Admin endpoint to view all booked appointments with filtering and pagination.",
+                "operationId": "listAppointments",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "confirmed",
+                                "cancelled",
+                                "completed"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "booking_date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "date_from",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "date_to",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Appointments retrieved",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Appointments retrieved successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Appointment"
+                                                    }
+                                                },
+                                                "pagination": {
+                                                    "$ref": "#/components/schemas/Pagination"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login provider",
+                "description": "Authenticate user and return access token",
+                "operationId": "5ac123bf3e705b3e218a2c2dbe20151d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "admin@gmail.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "Smart$Booking1"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Login successful"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "2|AiVYK8YFOdtV4rnmccRCeRo32RQ8FTtOb7WFvz1t7a0fb34e"
+                                                },
+                                                "user": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "name": {
+                                                            "type": "string",
+                                                            "example": "Admin Provider"
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "example": "admin@gmail.com"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            }
+        },
+        "/available-slots": {
+            "post": {
+                "tags": [
+                    "Available Slots"
+                ],
+                "summary": "Get available booking slots",
+                "description": "Returns available appointment slots for a given date based on service duration.",
+                "operationId": "getAvailableSlots",
+                "requestBody": {
+                    "description": "Date and optional service ID for fetching available slots",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "date"
+                                ],
+                                "properties": {
+                                    "date": {
+                                        "description": "Appointment date in YYYY-MM-DD format",
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-12-20"
+                                    },
+                                    "service_id": {
+                                        "description": "Optional service reference ID",
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Available slots retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Available slots retrieved successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/AvailableSlotsResponse"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            }
+        },
+        "/services": {
+            "get": {
+                "tags": [
+                    "Services"
+                ],
+                "summary": "List all services",
+                "description": "Retrieve a paginated list of all active services. Supports filtering, sorting, and searching.",
+                "operationId": "listServices",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Page"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPage"
+                    },
+                    {
+                        "$ref": "#/components/parameters/SortBy"
+                    },
+                    {
+                        "$ref": "#/components/parameters/SortOrder"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Search"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Status"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Services fetched successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Services fetched successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Service"
+                                                    }
+                                                },
+                                                "pagination": {
+                                                    "$ref": "#/components/schemas/Pagination"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Create a new service",
+                "description": "Create a new service with name, description, duration, and price.",
+                "operationId": "createService",
+                "requestBody": {
+                    "description": "Service data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "duration"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "description": "Service name",
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "example": "Hair Cut"
+                                    },
+                                    "description": {
+                                        "description": "Service description",
+                                        "type": "string",
+                                        "example": "Professional haircut service",
+                                        "nullable": true
+                                    },
+                                    "duration": {
+                                        "description": "Duration in minutes",
+                                        "type": "integer",
+                                        "maximum": 1440,
+                                        "minimum": 1,
+                                        "example": 30
+                                    },
+                                    "price": {
+                                        "description": "Service price",
+                                        "type": "number",
+                                        "format": "float",
+                                        "minimum": 0,
+                                        "example": 299
+                                    },
+                                    "is_active": {
+                                        "description": "Service active status",
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Service created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Service created successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Service"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/services/{id}": {
+            "get": {
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Get a specific service",
+                "description": "Retrieve detailed information about a specific service.",
+                "operationId": "getService",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Id"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service details fetched",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Service details fetched"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Service"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Update a service",
+                "description": "Update an existing service. All fields are optional - send only what you want to update.",
+                "operationId": "updateService",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Id"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Service data to update",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "example": "Hair Cut Pro"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Professional premium haircut",
+                                        "nullable": true
+                                    },
+                                    "duration": {
+                                        "type": "integer",
+                                        "maximum": 1440,
+                                        "minimum": 1,
+                                        "example": 45
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "minimum": 0,
+                                        "example": 399
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Service updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Service updated successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Service"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Services"
+                ],
+                "summary": "Delete a service",
+                "description": "Delete (soft delete) a service permanently.",
+                "operationId": "deleteService",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Id"
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Service deleted successfully"
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/NotFound"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/working-hours/configure-week": {
+            "post": {
+                "tags": [
+                    "Working Hours"
+                ],
+                "summary": "Configure weekly working hours",
+                "description": "Set working hours and breaks for each day of the week (0=Sunday ... 6=Saturday). Each day can be active or day off. Supports multiple breaks per day.",
+                "operationId": "configureWeeklyWorkingHours",
+                "requestBody": {
+                    "description": "Weekly working hours configuration",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "working_hours"
+                                ],
+                                "properties": {
+                                    "working_hours": {
+                                        "description": "Weekly configuration for 7 days",
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "day_of_week",
+                                                "is_active"
+                                            ],
+                                            "properties": {
+                                                "day_of_week": {
+                                                    "description": "0=Sunday, 1=Monday ... 6=Saturday",
+                                                    "type": "integer",
+                                                    "maximum": 6,
+                                                    "minimum": 0,
+                                                    "example": 1
+                                                },
+                                                "is_active": {
+                                                    "description": "If false → day is OFF, start_time/end_time can be null",
+                                                    "type": "boolean",
+                                                    "example": true
+                                                },
+                                                "start_time": {
+                                                    "description": "Start time in H:i format",
+                                                    "type": "string",
+                                                    "example": "09:00",
+                                                    "nullable": true
+                                                },
+                                                "end_time": {
+                                                    "description": "End time in H:i format",
+                                                    "type": "string",
+                                                    "example": "17:00",
+                                                    "nullable": true
+                                                },
+                                                "breaks": {
+                                                    "description": "List of breaks inside working hours",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "start_time": {
+                                                                "type": "string",
+                                                                "example": "13:00"
+                                                            },
+                                                            "end_time": {
+                                                                "type": "string",
+                                                                "example": "14:00"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            },
+                            "examples": {
+                                "WeeklyWorkingHoursExample": {
+                                    "summary": "Full week standard working hours",
+                                    "value": {
+                                        "working_hours": [
+                                            {
+                                                "day_of_week": 0,
+                                                "is_active": false,
+                                                "start_time": null,
+                                                "end_time": null,
+                                                "breaks": []
+                                            },
+                                            {
+                                                "day_of_week": 1,
+                                                "is_active": true,
+                                                "start_time": "09:00",
+                                                "end_time": "18:00",
+                                                "breaks": [
+                                                    {
+                                                        "start_time": "13:00",
+                                                        "end_time": "14:00"
+                                                    },
+                                                    {
+                                                        "start_time": "16:30",
+                                                        "end_time": "16:45"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "day_of_week": 2,
+                                                "is_active": true,
+                                                "start_time": "09:00",
+                                                "end_time": "18:00",
+                                                "breaks": [
+                                                    {
+                                                        "start_time": "13:00",
+                                                        "end_time": "14:00"
+                                                    },
+                                                    {
+                                                        "start_time": "16:30",
+                                                        "end_time": "16:45"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "day_of_week": 3,
+                                                "is_active": true,
+                                                "start_time": "09:00",
+                                                "end_time": "18:00",
+                                                "breaks": [
+                                                    {
+                                                        "start_time": "13:00",
+                                                        "end_time": "14:00"
+                                                    },
+                                                    {
+                                                        "start_time": "16:30",
+                                                        "end_time": "16:45"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "day_of_week": 4,
+                                                "is_active": true,
+                                                "start_time": "09:00",
+                                                "end_time": "18:00",
+                                                "breaks": [
+                                                    {
+                                                        "start_time": "13:00",
+                                                        "end_time": "14:00"
+                                                    },
+                                                    {
+                                                        "start_time": "16:30",
+                                                        "end_time": "16:45"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "day_of_week": 5,
+                                                "is_active": true,
+                                                "start_time": "09:00",
+                                                "end_time": "18:00",
+                                                "breaks": [
+                                                    {
+                                                        "start_time": "13:00",
+                                                        "end_time": "14:00"
+                                                    },
+                                                    {
+                                                        "start_time": "16:30",
+                                                        "end_time": "16:45"
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "day_of_week": 6,
+                                                "is_active": true,
+                                                "start_time": "09:00",
+                                                "end_time": "18:00",
+                                                "breaks": [
+                                                    {
+                                                        "start_time": "13:00",
+                                                        "end_time": "14:00"
+                                                    },
+                                                    {
+                                                        "start_time": "16:30",
+                                                        "end_time": "16:45"
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Weekly schedule configured successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Weekly schedule configured successfully"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/WorkingHour"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/working-hours/configure-day": {
+            "post": {
+                "tags": [
+                    "Working Hours"
+                ],
+                "summary": "Configure working hours for a single day",
+                "operationId": "configureSingleDayWorkingHours",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "day_of_week": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "start_time": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "end_time": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "breaks": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "start_time": {
+                                                    "type": "string"
+                                                },
+                                                "end_time": {
+                                                    "type": "string"
+                                                },
+                                                "title": {
+                                                    "type": "string"
+                                                },
+                                                "comment": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Working hours updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Working hours updated successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/WorkingHour"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/working-hours": {
+            "get": {
+                "tags": [
+                    "Working Hours"
+                ],
+                "summary": "Get weekly working hours schedule",
+                "description": "Retrieve the complete weekly schedule including all working hours and breaks for all 7 days.",
+                "operationId": "getWeeklySchedule",
+                "responses": {
+                    "200": {
+                        "description": "Weekly schedule retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Weekly schedule retrieved successfully"
+                                        },
+                                        "data": {
+                                            "description": "Array of 7 days (Sunday to Saturday)",
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/WorkingHour"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Server error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/working-hours/special-days": {
+            "get": {
+                "tags": [
+                    "Working Hours"
+                ],
+                "summary": "Fetch all special day rules",
+                "description": "Get list of all special day configurations with pagination, sorting, and filters.",
+                "operationId": "getSpecialDays",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/Page"
+                    },
+                    {
+                        "$ref": "#/components/parameters/PerPage"
+                    },
+                    {
+                        "$ref": "#/components/parameters/SortBy"
+                    },
+                    {
+                        "$ref": "#/components/parameters/SortOrder"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Search"
+                    },
+                    {
+                        "$ref": "#/components/parameters/Status"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Special days fetched successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Special days fetched successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/SpecialDay"
+                                                    }
+                                                },
+                                                "pagination": {
+                                                    "$ref": "#/components/schemas/Pagination"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Working Hours"
+                ],
+                "summary": "Create a special day rule",
+                "description": "Add a special day rule such as full off, half day, or extra working hours.",
+                "operationId": "createSpecialDay",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "date",
+                                    "type"
+                                ],
+                                "properties": {
+                                    "date": {
+                                        "description": "Special day date in Y-m-d format",
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-12-31"
+                                    },
+                                    "type": {
+                                        "description": "Type of special day",
+                                        "type": "string",
+                                        "enum": [
+                                            "full_off",
+                                            "half_day",
+                                            "extra_hours"
+                                        ],
+                                        "example": "extra_hours"
+                                    },
+                                    "half_day_type": {
+                                        "description": "Required only when type = half_day",
+                                        "type": "string",
+                                        "enum": [
+                                            "am",
+                                            "pm"
+                                        ],
+                                        "example": "am",
+                                        "nullable": true
+                                    },
+                                    "start_time": {
+                                        "description": "Required only when type = extra_hours",
+                                        "type": "string",
+                                        "example": "13:00",
+                                        "nullable": true
+                                    },
+                                    "end_time": {
+                                        "description": "Required only when type = extra_hours and must be after start_time",
+                                        "type": "string",
+                                        "example": "16:00",
+                                        "nullable": true
+                                    },
+                                    "title": {
+                                        "description": "Optional title for special day",
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "example": "New Year Eve",
+                                        "nullable": true
+                                    },
+                                    "comment": {
+                                        "description": "Optional comment",
+                                        "type": "string",
+                                        "example": "Office closes early",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Special day created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Special day created successfully"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/SpecialDay"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationError"
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/working-hours/special-days/{id}": {
+            "delete": {
+                "tags": [
+                    "Working Hours"
+                ],
+                "summary": "Delete a special day rule",
+                "description": "Deletes a special day by ID.",
+                "operationId": "deleteSpecialDay",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of the special day to delete",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 3
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Special day deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Special day deleted successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Special day not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Special day not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/Unauthorized"
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/ServerError"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Appointment": {
+                "title": "Appointment",
+                "required": [
+                    "id",
+                    "service_id",
+                    "client_name",
+                    "client_email",
+                    "booking_date",
+                    "start_time",
+                    "end_time",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "service_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "service_name": {
+                        "type": "string",
+                        "example": "Hair Cut"
+                    },
+                    "client_name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "client_email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "john@example.com"
+                    },
+                    "client_phone": {
+                        "type": "string",
+                        "example": "+1234567890",
+                        "nullable": true
+                    },
+                    "booking_date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-12-20"
+                    },
+                    "day_name": {
+                        "type": "string",
+                        "example": "Saturday"
+                    },
+                    "start_time": {
+                        "type": "string",
+                        "example": "10:00"
+                    },
+                    "end_time": {
+                        "type": "string",
+                        "example": "11:00"
+                    },
+                    "duration_minutes": {
+                        "type": "integer",
+                        "example": 60
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "confirmed",
+                            "cancelled",
+                            "completed"
+                        ],
+                        "example": "pending"
+                    },
+                    "status_badge": {
+                        "properties": {
+                            "color": {
+                                "type": "string",
+                                "example": "warning"
+                            },
+                            "text": {
+                                "type": "string",
+                                "example": "Pending"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "example": "Client prefers morning",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "AvailableSlotsResponse": {
+                "title": "Available Slots Response",
+                "required": [
+                    "service_duration",
+                    "slots",
+                    "total_slots"
+                ],
+                "properties": {
+                    "service_duration": {
+                        "type": "integer",
+                        "example": 60
+                    },
+                    "slots": {
+                        "type": "array",
+                        "items": {
+                            "required": [
+                                "start_time",
+                                "end_time"
+                            ],
+                            "properties": {
+                                "start_time": {
+                                    "type": "string",
+                                    "example": "09:00"
+                                },
+                                "end_time": {
+                                    "type": "string",
+                                    "example": "10:00"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "total_slots": {
+                        "type": "integer",
+                        "example": 5
+                    }
+                },
+                "type": "object"
+            },
+            "Pagination": {
+                "title": "Pagination Meta",
+                "description": "Pagination information for list responses",
+                "properties": {
+                    "current_page": {
+                        "description": "Current page number",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "per_page": {
+                        "description": "Items per page",
+                        "type": "integer",
+                        "example": 15
+                    },
+                    "total": {
+                        "description": "Total number of items",
+                        "type": "integer",
+                        "example": 156
+                    },
+                    "last_page": {
+                        "description": "Last page number",
+                        "type": "integer",
+                        "example": 11
+                    },
+                    "from": {
+                        "description": "First item index on page",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "to": {
+                        "description": "Last item index on page",
+                        "type": "integer",
+                        "example": 15
+                    }
+                },
+                "type": "object"
+            },
+            "PaginatedResponse": {
+                "title": "Paginated List Response",
+                "description": "Standard paginated response structure",
+                "properties": {
+                    "status": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Items fetched successfully"
+                    },
+                    "data": {
+                        "properties": {
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            },
+                            "pagination": {
+                                "$ref": "#/components/schemas/Pagination"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "TokenResponse": {
+                "title": "Authentication Token Response",
+                "properties": {
+                    "access_token": {
+                        "type": "string",
+                        "example": "1|AiVYK8YFOdtV4rnmccRCeRo32RQ8FTtOb7WFvz1t7a0fb34e"
+                    },
+                    "token_type": {
+                        "type": "string",
+                        "example": "Bearer"
+                    },
+                    "expires_in": {
+                        "description": "Token expiration in seconds",
+                        "type": "integer",
+                        "example": 3600
+                    }
+                },
+                "type": "object"
+            },
+            "Timestamp": {
+                "title": "Timestamp Fields",
+                "description": "Standard created/updated timestamps",
+                "properties": {
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:30:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:30:00Z"
+                    },
+                    "deleted_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Error": {
+                "title": "Error Response",
+                "properties": {
+                    "status": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "errors": {
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Service": {
+                "title": "Service",
+                "description": "Service model for booking system",
+                "properties": {
+                    "id": {
+                        "description": "Service unique identifier",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "Service name",
+                        "type": "string",
+                        "maxLength": 255,
+                        "example": "Hair Cut"
+                    },
+                    "description": {
+                        "description": "Service description",
+                        "type": "string",
+                        "example": "Professional haircut service",
+                        "nullable": true
+                    },
+                    "duration": {
+                        "description": "Duration in minutes",
+                        "type": "integer",
+                        "example": 30
+                    },
+                    "price": {
+                        "description": "Service price in currency",
+                        "type": "number",
+                        "format": "float",
+                        "example": 299
+                    },
+                    "is_active": {
+                        "description": "Whether service is active",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "description": "Service creation timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:30:00Z"
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T10:30:00Z"
+                    },
+                    "deleted_at": {
+                        "description": "Soft delete timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "BreakItem": {
+                "title": "Break Item",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "day_of_week": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "start_time": {
+                        "type": "string",
+                        "example": "12:30:00"
+                    },
+                    "end_time": {
+                        "type": "string",
+                        "example": "13:00:00"
+                    }
+                },
+                "type": "object"
+            },
+            "WorkingHour": {
+                "title": "Working Hour",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "day_of_week": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "day_name": {
+                        "type": "string",
+                        "example": "Monday"
+                    },
+                    "start_time": {
+                        "type": "string",
+                        "example": "09:00:00",
+                        "nullable": true
+                    },
+                    "end_time": {
+                        "type": "string",
+                        "example": "17:00:00",
+                        "nullable": true
+                    },
+                    "is_day_off": {
+                        "type": "boolean",
+                        "example": false
+                    }
+                },
+                "type": "object"
+            },
+            "SpecialDay": {
+                "title": "Special Day",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-12-31"
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Christmas Eve"
+                    },
+                    "comment": {
+                        "type": "string",
+                        "example": "Extended break"
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "type": {
+                        "description": "Special day type",
+                        "type": "string",
+                        "enum": [
+                            "full_off",
+                            "half_day",
+                            "extra_hours"
+                        ],
+                        "example": "extra_hours"
+                    },
+                    "half_day_type": {
+                        "description": "Used only when type = half_day",
+                        "type": "string",
+                        "enum": [
+                            "am",
+                            "pm"
+                        ],
+                        "example": "am",
+                        "nullable": true
+                    },
+                    "start_time": {
+                        "description": "Required only when type = extra_hours",
+                        "type": "string",
+                        "example": "13:00",
+                        "nullable": true
+                    },
+                    "end_time": {
+                        "description": "Required only when type = extra_hours and must be after start_time",
+                        "type": "string",
+                        "example": "16:00",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "responses": {
+            "401": {
+                "description": "Unauthorized"
+            },
+            "403": {
+                "description": "Forbidden"
+            },
+            "Success": {
+                "description": "Request executed successfully",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "boolean",
+                                    "example": true
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Operation successful"
+                                },
+                                "data": {
+                                    "type": "object"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "Created": {
+                "description": "Resource created successfully",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "boolean",
+                                    "example": true
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Resource created successfully"
+                                },
+                                "data": {
+                                    "type": "object"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "NoContent": {
+                "description": "Request successful, no content returned",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "boolean",
+                                    "example": true
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Resource deleted successfully"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "ValidationError": {
+                "description": "Request validation failed",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Validation failed"
+                                },
+                                "errors": {
+                                    "type": "object",
+                                    "example": {
+                                        "email": [
+                                            "The email field is required."
+                                        ],
+                                        "password": [
+                                            "Password must be at least 8 characters."
+                                        ]
+                                    }
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "NotFound": {
+                "description": "Resource not found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Resource not found"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "Unauthorized": {
+                "description": "Authentication required or invalid/expired token",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Unauthorized"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "Forbidden": {
+                "description": "Authenticated but not authorized to perform this action",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Forbidden - insufficient permissions"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "ServerError": {
+                "description": "Internal server error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Internal server error"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            },
+            "TooManyRequests": {
+                "description": "Rate limit exceeded",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "properties": {
+                                "status": {
+                                    "type": "boolean",
+                                    "example": false
+                                },
+                                "message": {
+                                    "type": "string",
+                                    "example": "Too many requests"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "parameters": {
+            "Page": {
+                "name": "page",
+                "in": "query",
+                "description": "Page number (1-indexed)",
+                "required": false,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                }
+            },
+            "PerPage": {
+                "name": "per_page",
+                "in": "query",
+                "description": "Number of items per page (max 100)",
+                "required": false,
+                "schema": {
+                    "type": "integer",
+                    "maximum": 100,
+                    "minimum": 1,
+                    "example": 15
+                }
+            },
+            "SortBy": {
+                "name": "sort_by",
+                "in": "query",
+                "description": "Field name to sort by",
+                "required": false,
+                "schema": {
+                    "type": "string",
+                    "example": "created_at"
+                }
+            },
+            "SortOrder": {
+                "name": "sort_order",
+                "in": "query",
+                "description": "Sort direction",
+                "required": false,
+                "schema": {
+                    "type": "string",
+                    "enum": [
+                        "asc",
+                        "desc"
+                    ],
+                    "example": "desc"
+                }
+            },
+            "Search": {
+                "name": "search",
+                "in": "query",
+                "description": "Search keyword",
+                "required": false,
+                "schema": {
+                    "type": "string",
+                    "example": "hair cut"
+                }
+            },
+            "Status": {
+                "name": "status",
+                "in": "query",
+                "description": "Filter by status",
+                "required": false,
+                "schema": {
+                    "type": "boolean"
+                }
+            },
+            "Id": {
+                "name": "id",
+                "in": "path",
+                "description": "Resource ID",
+                "required": true,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1
+                }
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Login with email and password to get the authentication token",
+                "name": "Token based authentication",
+                "in": "header",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Authentication endpoints"
+        },
+        {
+            "name": "Services",
+            "description": "Service management endpoints"
+        },
+        {
+            "name": "Working Hours",
+            "description": "Working hours configuration endpoints"
+        },
+        {
+            "name": "Appointments",
+            "description": "Appointments"
+        },
+        {
+            "name": "Available Slots",
+            "description": "Available Slots"
+        }
+    ]
+}

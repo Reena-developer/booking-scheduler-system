@@ -1,0 +1,22 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Models\Service;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+class ServiceFactory extends Factory
+{
+    protected $model = Service::class;
+
+    public function definition()
+    {
+        return [
+            'name' => $this->faker->word(),
+            'description' => $this->faker->sentence(),
+            'duration' => 30,
+            'price' => 100,
+            'is_active' => true
+        ];
+    }
+}
