@@ -1,5 +1,3 @@
-# Project Name
-
 ## Features
 
 - **Service Management** - Manage service configurations and operations
@@ -80,12 +78,8 @@ cd ../frontend
 npm install
 ```
 
-3. Configure environment variable in `.env.local`:
-```env
-VITE_API_URL=http://localhost:8000/api/v1
-```
 
-4. Run the development server:
+3. Run the development server:
 ```bash
 npm run dev
 ```
